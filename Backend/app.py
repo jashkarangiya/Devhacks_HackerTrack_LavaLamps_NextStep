@@ -42,12 +42,33 @@ def upload_resume():
     # data["certifications"] = data.get("certifications", [])
     print(data)
     # Store in Neo4j using the correct method
-    neo4j.insert_resume(data)
+    # neo4j.insert_resume(data)
 
-    return jsonify({
-        "message": "Resume parsed and stored successfully!",
-        "data": data
-    }), 200
+    # return jsonify({
+    #     "message": "Resume parsed and stored successfully!",
+    #     "data": data
+    # }), 200
+
+    return jsonify(data)
+
+@app.route("/submit_resume", methods=["POST"])
+def submit_resume():
+    data = request.json  # final edited data from form
+
+    # include career_path field
+    career_path = data.get("career_path")
+
+    # push to Neo4j
+    handler = Neo4jHandler(
+        uri=os.getenv("uri"),
+        user=os.getenv("user"),
+        password=os.getenv("password")
+    )
+    handler.insert_resume(data)
+    handler.close()
+
+    return jsonify({"message": "Resume successfully inserted", "career_path": career_path})
+
 
 
 if __name__ == "__main__":
