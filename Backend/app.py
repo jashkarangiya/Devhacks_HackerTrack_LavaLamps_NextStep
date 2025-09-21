@@ -2,7 +2,9 @@ from flask import Flask, request, jsonify, render_template
 from parser.extractor import parse_resume
 from neo4j_handler import Neo4jHandler
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv 
+load_dotenv()
+api_key = os.getenv("GEMINI_API_KEY")
 
 app = Flask(__name__, template_folder="templates")
 
@@ -18,7 +20,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @app.route("/", methods=["GET"])
 def home():
-    return render_template("index.html")  # serve your existing index.html
+    return render_template("index.html")
 
 @app.route("/upload", methods=["POST"])
 def upload_resume():
@@ -35,18 +37,13 @@ def upload_resume():
 
     # Parse resume
     data = parse_resume(file_path)
-
-    print(data)
     return jsonify(data)
 
 @app.route("/submit_resume", methods=["POST"])
 def submit_resume():
-    data = request.json  # final edited data from form
-
-    # include career_path field
+    data = request.json
     career_path = data.get("career_path")
 
-    # push to Neo4j
     handler = Neo4jHandler(
         uri=os.getenv("uri"),
         user=os.getenv("user"),
@@ -56,8 +53,6 @@ def submit_resume():
     handler.close()
 
     return jsonify({"message": "Resume successfully inserted", "career_path": career_path})
-
-
 
 if __name__ == "__main__":
     app.run(debug=True)
